@@ -33,7 +33,7 @@ const navItems: NavItem[] = [
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -41,12 +41,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       <header className="fixed top-0 left-0 right-0 z-50 bg-slate-900/80 backdrop-blur-xl border-b border-slate-700/50">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 rounded-lg hover:bg-slate-700/50 transition-colors"
-            >
-              {sidebarOpen ? <X size={24} className="text-slate-300" /> : <Menu size={24} className="text-slate-300" />}
-            </button>
             <div className="flex items-center gap-2">
               <motion.div
                 animate={{ rotate: 360 }}
@@ -54,64 +48,75 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
               >
                 <Sparkles className="text-blue-400" size={28} />
               </motion.div>
-              <h1 className="text-xl font-bold gradient-text">AI Business Solutions Demo</h1>
+              <h1 className="text-lg sm:text-xl font-bold gradient-text">AI Business Solutions</h1>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30">
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30">
               <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              <span className="text-sm text-slate-300">AI System Active</span>
+              <span className="text-sm text-slate-300">AI Active</span>
             </div>
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="p-2 rounded-lg hover:bg-slate-700/50 transition-colors"
+              aria-label="メニュー"
+            >
+              {menuOpen ? <X size={24} className="text-slate-300" /> : <Menu size={24} className="text-slate-300" />}
+            </button>
           </div>
         </div>
       </header>
 
-      {/* Sidebar */}
+      {/* Mobile Menu Overlay */}
       <AnimatePresence>
-        {sidebarOpen && (
-          <motion.aside
-            initial={{ x: -280 }}
-            animate={{ x: 0 }}
-            exit={{ x: -280 }}
-            transition={{ type: "spring", damping: 20 }}
-            className="fixed left-0 top-16 bottom-0 w-64 bg-slate-900/90 backdrop-blur-xl border-r border-slate-700/50 z-40 overflow-y-auto"
-          >
-            <nav className="p-4 space-y-2">
-              {navItems.map((item) => {
-                const isActive = location.pathname === item.path;
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${
-                      isActive
-                        ? `bg-gradient-to-r ${item.color} text-white shadow-lg shadow-blue-500/25`
-                        : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
-                    }`}
-                  >
-                    <span className={`${isActive ? 'scale-110' : 'group-hover:scale-110'} transition-transform`}>
-                      {item.icon}
-                    </span>
-                    <span className="font-medium">{item.label}</span>
-                    {isActive && (
-                      <motion.div
-                        layoutId="activeIndicator"
-                        className="ml-auto w-1.5 h-1.5 rounded-full bg-white"
-                      />
-                    )}
-                  </Link>
-                );
-              })}
-            </nav>
-          </motion.aside>
+        {menuOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMenuOpen(false)}
+              className="fixed inset-0 bg-black/50 z-40"
+            />
+            {/* Menu Panel */}
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="fixed top-16 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-xl border-b border-slate-700/50 max-h-[calc(100vh-4rem)] overflow-y-auto"
+            >
+              <nav className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {navItems.map((item) => {
+                  const isActive = location.pathname === item.path;
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setMenuOpen(false)}
+                      className={`flex flex-col items-center gap-2 px-4 py-4 rounded-xl transition-all duration-300 ${
+                        isActive
+                          ? `bg-gradient-to-r ${item.color} text-white shadow-lg`
+                          : 'text-slate-400 hover:text-white hover:bg-slate-800/50 border border-slate-700/50'
+                      }`}
+                    >
+                      <span className="text-2xl">
+                        {item.icon}
+                      </span>
+                      <span className="font-medium text-sm text-center">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
 
       {/* Main Content */}
-      <main
-        className={`pt-16 transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-0'}`}
-      >
-        <div className="p-6">
+      <main className="pt-16">
+        <div className="p-4 sm:p-6">
           {children}
         </div>
       </main>
